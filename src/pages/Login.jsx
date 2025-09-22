@@ -10,20 +10,21 @@ export default function Login() {
   const setUser = useSetRecoilState(userState)
   const nav = useNavigate()
 
- async function submit(e) {
-  e.preventDefault()
-  setError(null)
-  try {
-    const res = await login(form)
-    if (res.data.user) {
-      setUser(res.data.user)              
-      localStorage.setItem('user', JSON.stringify(res.data.user)) 
+  async function submit(e) {
+    e.preventDefault()
+    setError(null)
+    try {
+      const res = await login(form)
+      // Directly set user and navigate on successful login
+      if (res.data.user) {
+        setUser(res.data.user)
+        localStorage.setItem('user', JSON.stringify(res.data.user))
+        nav('/projects')
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Login failed')
     }
-    nav('/projects')
-  } catch (err) {
-    setError(err?.response?.data?.message || 'Login failed')
   }
-}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 to-white px-4">

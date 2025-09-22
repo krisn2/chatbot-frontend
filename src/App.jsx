@@ -8,47 +8,49 @@ import ProjectDetail from './pages/ProjectDetail'
 import Chat from './pages/Chat'
 import ProtectedRoute from './components/ProtectedRoute'
 import api from './api/axios'
-import { useSetRecoilState } from 'recoil'
+import { useSetRecoilState, useRecoilValue } from 'recoil'
 import { userState } from './state/atoms'
 
 export default function App() {
   const setUser = useSetRecoilState(userState)
+  const user = useRecoilValue(userState) // Get the current user state
   const nav = useNavigate()
   const location = useLocation()
-  const [loading, setLoading] = useState(true) 
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Skip session validation on auth pages
-    if (['/login', '/register'].includes(location.pathname)) {
-      setLoading(false)
-      return
+    // Only check session if the user is not already authenticated
+    if (user || ['/login', '/register'].includes(location.pathname)) {
+      setLoading(false);
+      return;
     }
 
     async function checkSession() {
       try {
-        const res = await api.get('/auth/me')
+        const res = await api.get('/auth/me');
         if (res.data.user) {
-          setUser(res.data.user)
-          localStorage.setItem('user', JSON.stringify(res.data.user))
+          setUser(res.data.user);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
         } else {
-          setUser(null)
-          localStorage.removeItem('user')
-          nav('/login')
+          setUser(null);
+          localStorage.removeItem('user');
+          nav('/login');
         }
       } catch {
-        setUser(null)
-        localStorage.removeItem('user')
-        nav('/login')
+        setUser(null);
+        localStorage.removeItem('user');
+        nav('/login');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    checkSession()
-  }, [setUser, nav, location.pathname])
+    checkSession();
+  }, [setUser, nav, location.pathname, user]); // Add 'user' to the dependency array
 
   if (loading) {
-    return <div className="min-h-screen flex justify-center items-center">Loading...</div> // 👈 Render a loading state
+    return <div className="min-h-screen flex justify-center items-center">Loading...</div>
   }
+
 
   return (
     <div className="min-h-screen">
