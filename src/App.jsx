@@ -18,13 +18,8 @@ export default function App() {
   const location = useLocation()
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // Only check session if the user is not already authenticated
-    if (user || ['/login', '/register'].includes(location.pathname)) {
-      setLoading(false);
-      return;
-    }
-
+ useEffect(() => {
+    // Check session on every app load unless on login/register pages
     async function checkSession() {
       try {
         const res = await api.get('/auth/me');
@@ -34,18 +29,25 @@ export default function App() {
         } else {
           setUser(null);
           localStorage.removeItem('user');
-          nav('/login');
+          // No navigation needed here, ProtectedRoute will handle it
         }
       } catch {
         setUser(null);
         localStorage.removeItem('user');
-        nav('/login');
+        // No navigation needed here
       } finally {
         setLoading(false);
       }
     }
-    checkSession();
-  }, [setUser, nav, location.pathname, user]); // Add 'user' to the dependency array
+
+    // Only check if the user is not in state and not on login/register pages
+    if (!user && !['/login', '/register'].includes(location.pathname)) {
+        checkSession();
+    } else {
+        setLoading(false);
+    }
+
+  }, [setUser, nav, location.pathname, user]);
 
   if (loading) {
     return <div className="min-h-screen flex justify-center items-center">Loading...</div>
